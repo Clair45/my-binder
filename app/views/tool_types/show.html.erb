@@ -1,91 +1,192 @@
-<% update_document_title(add: @tool_type.name.to_s) %>
+<% update_document_title(add: "#{@tool_type.name}") %>
 <% update_breadcrumbs(add: link_to('Tool types', tool_types_path)) %>
-<% update_breadcrumbs(add: @tool_type.name.to_s) %>
+<% update_breadcrumbs(add: "#{@tool_type.name}") %>
 <% nav(active: 'tool_types') %>
 
-<div class="content">
-  <h1><%= @tool_type.name %></h1>
-  <% begin %>
-    <dt>
-      <%= image_tag("tool_images/#{@tool_type.name}.png", id: "item-image-#{@tool_type.name}", class: 'item-image', data: { item_name: @tool_type.name, image_url: asset_path("tool_images/#{@tool_type.name}.png") }, size: '70x70') %>
-    </dt>
-  <% rescue %>
-  <% end %>
-  <br/>
-  <% if can?(:update, @tool_type) %>
-    <%= link_to t('.edit', default: t('helpers.links.edit')),
-                edit_tool_type_path(@tool_type), class: 'btn btn-primary' %>
-  <% end %>
-  <% if can?(:destroy, @tool_type) %>
-    <%= link_to t('.destroy', default: t('helpers.links.destroy')),
-                tool_type_path(@tool_type),
-                data: {
-                  turbo_confirm: 'Are you sure?',
-                  turbo_method: 'delete'
-                },
-                class: 'btn btn-danger' %>
-  <% end %>
-  <br/>
-</div>
-
 <style>
+  .tool-show-container {
+    padding: 1rem 0 2rem;
+  }
+
+  /* Image card */
+  .tool-image-card {
+    flex-shrink: 0;
+    width: 260px;
+    background: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transition: box-shadow 0.2s;
+    cursor: pointer;
+  }
+
+  .tool-image-card:hover {
+    box-shadow: 0 8px 28px rgba(0,0,0,0.14);
+  }
+
+  .tool-image-card img {
+    width: 210px;
+    height: 210px;
+    object-fit: contain;
+    border-radius: 8px;
+    display: block;
+    transition: transform 0.22s ease;
+  }
+
+  .tool-image-card:hover img {
+    transform: scale(1.05);
+  }
+
+  .tool-no-image {
+    width: 210px;
+    height: 210px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #bbb;
+    font-size: 3.5rem;
+    gap: 0.5rem;
+  }
+
+  .tool-no-image span {
+    font-size: 0.8rem;
+    color: #ccc;
+    font-style: italic;
+  }
+
+  .tool-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  /* Click-to-enlarge hint */
+  .image-hint {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* Popup overlay */
   .popup {
     position: fixed;
     top: 0;
     left: 0;
     height: 100%;
     width: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.65);
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     z-index: 999;
+    gap: 1rem;
   }
 
   .popup img {
-    max-height: 90%;
-    max-width: 90%;
+    max-height: 80vh;
+    max-width: 80vw;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
   }
 
-  .item-image {
-  cursor: pointer;
+  .popup-close {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    padding: 6px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.15s;
+  }
+
+  .popup-close:hover {
+    background: rgba(255,255,255,0.25);
   }
 </style>
+
+<div class="content">
+  <div class="tool-show-container">
+
+    <h1><%= @tool_type.name %></h1>
+
+    <%# Image card %>
+    <% begin %>
+      <div class="tool-image-card" id="image-card"
+           data-image-url="<%= asset_path("tool_images/#{@tool_type.name}.png") %>">
+        <%= image_tag("tool_images/#{@tool_type.name}.png",
+                      alt: @tool_type.name,
+                      id: "tool-main-image") %>
+      </div>
+      <p class="image-hint">Click image to enlarge</p>
+    <% rescue %>
+      <div class="tool-image-card">
+        <div class="tool-no-image">
+          🔧
+          <span>No image yet</span>
+        </div>
+      </div>
+    <% end %>
+
+    <p class="tool-meta">Tool type</p>
+
+    <div class="tool-actions">
+      <% if can?(:update, @tool_type) %>
+        <%= link_to t('.edit', default: t('helpers.links.edit')),
+                    edit_tool_type_path(@tool_type), class: 'btn btn-primary' %>
+      <% end %>
+      <% if can?(:destroy, @tool_type) %>
+        <%= link_to t('.destroy', default: t('helpers.links.destroy')),
+                    tool_type_path(@tool_type),
+                    data: {
+                      turbo_confirm: 'Are you sure?',
+                      turbo_method: 'delete',
+                    },
+                    class: 'btn btn-danger' %>
+      <% end %>
+    </div>
+
+  </div>
+</div>
+
 <script>
-  // opens the image in a popup when it's clicked
-  // closes the image when the "Close Image" button is clicked
-  function openPopup(imageUrl) {
-  if (document.querySelector('.popup')) {
-    // popup is already open, do nothing
-    return;
-  }
-  var popup = document.createElement('div');
-  popup.className = 'popup';
-  var img = document.createElement('img');
-  img.src = imageUrl;
-  popup.appendChild(img);
-  var closeButton = document.createElement('button');
-  closeButton.innerHTML = 'Close Image';
-  popup.appendChild(closeButton);
-  document.body.appendChild(popup);
+  (function() {
+    var card = document.getElementById('image-card');
+    if (!card) return;
 
-  popup.addEventListener('click', function(event) {
-    if (event.target === popup) {
-      popup.parentNode.removeChild(popup);
-    }
-  });
-  closeButton.addEventListener('click', function() {
-    popup.parentNode.removeChild(popup);
-  });
-  }
+    card.addEventListener('click', function() {
+      if (document.querySelector('.popup')) return;
 
-  // if an image is called, the openPopup function is called
-  $(function() {
-    $('.item-image').click(function() {
-      var imageUrl = $(this).data('image-url');
-      openPopup(imageUrl);
+      var imageUrl = card.getAttribute('data-image-url');
+      var popup = document.createElement('div');
+      popup.className = 'popup';
+
+      var img = document.createElement('img');
+      img.src = imageUrl;
+      img.alt = '<%= @tool_type.name %>';
+      popup.appendChild(img);
+
+      var closeBtn = document.createElement('button');
+      closeBtn.className = 'popup-close';
+      closeBtn.textContent = 'Close';
+      popup.appendChild(closeBtn);
+
+      document.body.appendChild(popup);
+
+      popup.addEventListener('click', function(e) {
+        if (e.target === popup) popup.parentNode.removeChild(popup);
+      });
+      closeBtn.addEventListener('click', function() {
+        popup.parentNode.removeChild(popup);
+      });
     });
-  });
-
+  })();
 </script>

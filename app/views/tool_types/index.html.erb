@@ -1,12 +1,67 @@
 <% update_document_title(add: 'Tool Types') %>
 <% update_breadcrumbs(add: 'Tool Types') %>
 <%= nav(active: 'tools') %>
-<% content_for :head do %>
-  <script></script>
-<% end %>
 
 <%- model_class = ToolType -%>
-<div class="page-header"> </div>
+
+<style>
+  .tool-name-cell {
+    position: relative;
+  }
+
+  .tool-name-link {
+    display: inline-block;
+  }
+
+  .tool-hover-preview {
+    display: none;
+    position: absolute;
+    left: 105%;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    padding: 10px;
+    width: 160px;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .tool-hover-preview img {
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #f5f5f5;
+    display: block;
+    margin: 0 auto 6px;
+  }
+
+  .tool-hover-preview .preview-label {
+    font-size: 0.78rem;
+    color: #555;
+    font-style: italic;
+  }
+
+  .tool-hover-preview .no-image-placeholder {
+    width: 130px;
+    height: 130px;
+    background: #f0f0f0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin: 0 auto 6px;
+  }
+
+  .tool-name-cell:hover .tool-hover-preview {
+    display: block;
+  }
+</style>
 
 <div class="content">
   <div>
@@ -32,38 +87,45 @@
       <tbody>
         <% @tool_types.each do |tool_type| %>
           <tr>
-            <% if can?(:update, tool_type) %>
-              <td><%= link_to tool_type.name, tool_type_path(tool_type) %></td>
-            <% else %>
-              <td><%= tool_type.name %></td>
-            <% end %>
+            <td class="tool-name-cell">
+              <% if can?(:update, tool_type) %>
+                <span class="tool-name-link"><%= link_to tool_type.name, tool_type_path(tool_type) %></span>
+              <% else %>
+                <span class="tool-name-link"><%= tool_type.name %></span>
+              <% end %>
+
+              <%# Hover preview tooltip %>
+              <div class="tool-hover-preview">
+                <% begin %>
+                  <%= image_tag("tool_images/#{tool_type.name}.png", alt: tool_type.name) %>
+                <% rescue %>
+                  <div class="no-image-placeholder">🔧</div>
+                <% end %>
+                <span class="preview-label"><%= tool_type.name %></span>
+              </div>
+            </td>
+
             <td><%= tool_type.tools.count %></td>
+
             <% if can?(:update, ToolType) %>
-              <td
-                ><%= link_to 'Edit', edit_tool_type_path(tool_type), class: 'btn btn-primary btn-xs' %></td
-              >
+              <td><%= link_to 'Edit', edit_tool_type_path(tool_type), class: 'btn btn-primary btn-xs' %></td>
             <% end %>
+
             <% if can?(:destroy, tool_type) %>
               <td>
                 <%= link_to t('.destroy', default: t('helpers.links.destroy')),
                             tool_type_path(tool_type),
                             class: 'btn btn-danger btn-xs',
                             method: 'delete',
-                            data: {
-                              turbo_method: 'delete',
-                              turbo_confirm:
-                                t(
-                                  '.confirm',
-                                  default: t('helpers.links.confirm', default: 'Are you sure?')
-                                )
-                            } %>
+                            data: { turbo_method: 'delete', turbo_confirm: t('.confirm', default: t('helpers.links.confirm', default: 'Are you sure?')) } %>
               </td>
             <% end %>
           </tr>
         <% end %>
       </tbody>
-    </table> </div
-  ><div class="sidebar"> <%= render 'tool_types/sidebar' %> </div>
+    </table>
 
-  <%# = will_paginate @tools, renderer: BootstrapPagination::Rails %>
+  </div><div class="sidebar">
+    <%= render 'tool_types/sidebar' %>
+  </div>
 </div>
