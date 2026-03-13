@@ -8,6 +8,8 @@ ruby File.read("#{Bundler.root}/.ruby-version").strip
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem 'rails', '~> 8.0.0'
 
+gem "csv"
+
 # Use the Puma web server [https://github.com/puma/puma]
 gem 'puma', '~> 5.0'
 
@@ -75,6 +77,8 @@ end
 
 # Simple Form for store (TODO: Get rid of in store)
 gem 'simple_form'
+
+
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
